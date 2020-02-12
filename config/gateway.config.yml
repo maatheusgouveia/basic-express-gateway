@@ -1,16 +1,26 @@
 http:
   port: 8080
+
 admin:
   port: 9876
   host: localhost
+
 serviceEndpoints:
   github:
     url: "https://api.github.com"
+  cep:
+    url: "https://brasilapi.com.br/api"
 
 apiEndpoints:
-  api:
+  github_api:
     host: "localhost"
-    paths: "*"
+    paths:
+      - "*"
+
+  cep_api:
+    host: "localhost"
+    paths:
+      - "*"
 
 policies:
   - basic-auth
@@ -25,9 +35,21 @@ policies:
 pipelines:
   default:
     apiEndpoints:
-      - api
+      - github_api
+      - cep_api
     policies:
-      - proxy:
+      - cors:
           - action:
+              origin: "*"
+              methods: "HEAD,OPTIONS,GET,PUT,POST,DELETE"
+      - proxy:
+          - condition:
+              name: pathMatch
+              pattern: "/users/*"
+            action:
               serviceEndpoint: github
-              changeOrigin: true
+          - condition:
+              name: pathMatch
+              pattern: "/cep/*"
+            action:
+              serviceEndpoint: cep
